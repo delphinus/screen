@@ -112,7 +112,9 @@ struct win **wtab;	/* window table */
 int VerboseCreate = 0;		/* XXX move this to user.h */
 
 char DefaultShell[] = "/bin/sh";
+#ifndef HAVE_EXECVPE
 static char DefaultPath[] = ":/usr/ucb:/bin:/usr/bin";
+#endif
 
 /* keep this in sync with the structure definition in window.h */
 struct NewWindow nwin_undef   = 
@@ -881,6 +883,8 @@ struct win *p;
   lflag = nwin_default.lflag;
   if ((f = OpenDevice(p->w_cmdargs, lflag, &p->w_type, &TtyName)) < 0)
     return -1;
+
+  evdeq(&p->w_destroyev); /* no re-destroy of resurrected zombie */
 
   strncpy(p->w_tty, *TtyName ? TtyName : p->w_title, MAXSTR - 1);
   p->w_ptyfd = f;
